@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Apparel Search Engine</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+* {box-sizing: border-box;}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Style the body */
+body {
+  font-family: Arial;
+  margin: 0;
+}
+
+/* Header/Logo Title */
+.header {
+  padding: 10px;
+  text-align: center;
+  background-image:url("https://wallpaper-mania.com/wp-content/uploads/2018/09/High_resolution_wallpaper_background_ID_77702089619.jpg");
+  color: Black;
+  font-size: 18px;
+}
+
+/* to add text block */
+.text-block {
+  position: abssolute;
+  top: 8px;
+  left: 00px;
+  font-size: 30px;
+  color: black;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+/* Page Content */
+.content {padding:5px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="text-block">
+        <a>Apparel Search Engine</a>
+        <br>
+    </div>
+<div align = 'center'>
+    <br><a class="active" align = 'center'>Upload Image</a><br>
+</div>
+<form id = "upload form" action = /upload method = "POST" enctype="multipart/form-data">
+    <input type="file" name="image" accept="image/*" multiple>
+    <input class="btn btn-primary" type="submit" value="Search">
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <br><br><br><br><br><br><br><br><br>
+
+</form>
+</div>
+</body>
+</html>

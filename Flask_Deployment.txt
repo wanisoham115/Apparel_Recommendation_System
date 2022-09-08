@@ -1,0 +1,143 @@
+from flask import Flask, render_template, request, flash
+import os
+from tensorflow.python.keras.models import load_model
+from keras.preprocessing.image import load_img
+from keras.preprocessing.image import img_to_array
+import uuid
+import pandas as pd
+import numpy as np
+from scipy.spatial.distance import cosine
+from keras.applications.vgg16 import preprocess_input
+
+
+app = Flask(__name__)
+app_root = os.path.dirname(os.path.abspath(r'C:/Users/wanis/.spyder-py3/templates'))
+app.secret_key = 'please run'
+#load model
+#model = load_model('final_model.h5')
+#model_feature = load_model('VGG16.h5')
+#load features data
+df_feature = pd.read_pickle('data feature 700')
+
+@app.route('/')
+
+def hello():
+    return render_template('upload.html')
+
+@app.route('/upload', methods=['GET', 'POST'])
+def search():
+    target = os.path.join(app_root, 'static')
+    print(target)
+
+    if not os.path.isdir(target):
+        os.mkdir(target)
+
+    if request.method == 'POST':
+        _image = request.files["image"]
+        print(_image)
+        #filename = _image.filename
+        res = uuid.uuid4().hex
+        imagename = '{}.jpg'.format(res)
+        destination = "\\".join([target, imagename])
+        _image.save(destination)
+
+    img_size = 224
+
+    def load_image(filename):
+        # load the image
+        img = load_img(filename, target_size=(img_size, img_size))
+        # convert to array
+        img = img_to_array(img)
+        # reshape into a single sample with 3 channels
+        img = img.reshape(1, img_size, img_size, 3)
+        # center pixel data
+        img = img.astype('float32')
+        img = img - [123.68, 116.779, 103.939]
+        return img
+
+# load an image and predict the class
+    def pred_label(x):
+        if x == 0:
+            return 'Blazer_men'
+        elif x == 1:
+            return 'Blazer_women'
+        elif x == 2:
+            return 'Dress'
+        elif x == 3:
+            return 'Hoodie'
+        elif x == 4:
+            return 'Jeans_men'
+        elif x == 5:
+            return 'Jeans_women'
+        elif x == 6:
+            return 'Shorts'
+
+    def get_model(model=None):
+        if model:
+            pass
+        else:
+            model = load_model('final_model.h5')
+            return model
+
+    def get_feature_model(model=None):
+        if model:
+            pass
+        else:
+            model = load_model('VGG16.h5')
+            print('loaded again')
+            return model
+
+    def run_example(image):
+        # load the image
+        img = load_image(image)
+        # load model
+        #model = load_model('final_model.h5')
+        global train_model
+        train_model = get_model()
+        # predict the class
+        result = train_model.predict(img)
+        #print('Predicted Apparel Category: ', pred_label(result[0].argmax()))
+        global pred
+        pred = pred_label(result[0].argmax())
+        #print(pred)
+
+
+    def extract_features(test_image_path):
+        img = load_img(test_image_path, target_size=(224, 224))
+        img_data = img_to_array(img)
+        img_data = np.expand_dims(img_data, axis=0)
+        img_data = preprocess_input(img_data)
+        global model_feature
+        model_feature = get_feature_model()
+        test_feat = model_feature.predict(img_data)
+        test_feat_np_flat = np.array(test_feat).flatten()
+        return test_feat_np_flat
+
+    def get_top5(df, features, label):
+        df = df[df['label'] == label.lower()].copy()
+        df['cos_ind'] = df['feature_vector'].apply(lambda x: cosine(features, x))
+        df.sort_values(['cos_ind'], ascending=True, inplace=True)
+        lst = df['img_path'].iloc[0:6].copy()
+        return lst
+
+    test_image = 'C:/Users/wanis/.spyder-py3/static/{}.jpg'.format(res)
+    run_example(test_image)
+    test_features = extract_features(test_image)
+    result = get_top5(df_feature, features=test_features, label=pred)
+    #r = pred
+    #print(r)
+    image1 = '{}'.format(result.iloc[0])
+    #print(image1)
+    image2 = '{}'.format(result.iloc[1])
+    image3 = '{}'.format(result.iloc[2])
+    image4 = '{}'.format(result.iloc[3])
+    image5 = '{}'.format(result.iloc[4])
+    image6 = '{}'.format(result.iloc[5])
+    # r = pred
+    # print(r)
+    pred_display = pred.split('_')[0]
+    return render_template('display.html', imagenav=imagename,
+                           pred=pred_display, r1=image1, r2=image2, r3=image3, r4=image4, r5=image5, r6=image6)
+
+if __name__ == '__main__':
+    app.run(debug=False)
